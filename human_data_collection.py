@@ -330,10 +330,11 @@ with col2:
 
             # Append the new data to existing data
             updated_data = pd.concat([existing_data, new_data], ignore_index=True)
-
+            #st.write(updated_data)
             # Save the updated data
             # For local save
-            responses_df = db.update(data=updated_data)
+            responses_df = db.update(worksheet = "Responses", data=updated_data)
+            st.cache_data.clear()
             #updated_data.to_csv("human_outputs.csv", index=False)
             st.markdown(" ")
             st.markdown(" ")
