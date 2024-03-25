@@ -20,9 +20,9 @@ db = st.connection("gsheets", type=GSheetsConnection)
 
 #rxn_df = pd.read_csv("input_file.csv", header=0)
 
-rxn_df = db.read(worksheet = "Raw_data", usecols=["Reactant", "Product"], nrows = 1782)
-responses_df = df.read(worksheet = "Responses", usecols=["time", "background", "experience", "age_experience",
-                                                         "smiles_sm", "smiles_selected, correct",
+rxn_df = db.read(worksheet = "Raw_data", usecols=["Reactant", "Product", "AI"], nrows = 1782)
+responses_df = db.read(worksheet = "Responses", usecols=["time", "background", "experience", "age_experience",
+                                                         "smiles_sm", "smiles_selected", "correct",
                                                          "ai_prediction", "correct_product"])
 def possible_prods(starting_material):
     """
@@ -325,7 +325,8 @@ with col2:
                 st.markdown(f"You might want to revise the topic. ")
 
 
-            existing_data = pd.read_csv("human_outputs.csv")
+            #existing_data = pd.read_csv("human_outputs.csv")
+            existing_data = responses_df
 
             # Append the new data to existing data
             updated_data = pd.concat([existing_data, new_data], ignore_index=True)
@@ -333,7 +334,7 @@ with col2:
             # Save the updated data
             # For local save
             responses_df = db.update(data=updated_data)
-            updated_data.to_csv("human_outputs.csv", index=False)
+            #updated_data.to_csv("human_outputs.csv", index=False)
             st.markdown(" ")
             st.markdown(" ")
             st.markdown ("Click restart to do it again!")

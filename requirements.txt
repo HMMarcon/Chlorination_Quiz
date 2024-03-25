@@ -3,6 +3,6 @@ pandas == 1.4.2
 ipywidgets == 7.6.3
 tqdm == 4.64.0
 streamlit
-streamlit_gsheets
+st-gsheets-connection
 datetime
 itertools
