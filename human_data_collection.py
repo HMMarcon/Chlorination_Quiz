@@ -23,7 +23,7 @@ db = st.connection("gsheets", type=GSheetsConnection)
 rxn_df = db.read(worksheet = "Raw_data", usecols=["Reactant", "Product", "AI"], nrows = 1782)
 responses_df = db.read(worksheet = "Responses", usecols=["time", "background", "experience", "age_experience",
                                                          "smiles_sm", "smiles_selected", "correct",
-                                                         "ai_prediction", "correct_product"])
+                                                         "ai_prediction", "correct_product", "selected_product"])
 def possible_prods(starting_material):
     """
     Input: RDKit Mol-object of starting material
