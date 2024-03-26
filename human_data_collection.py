@@ -16,14 +16,7 @@ from rdkit.Chem import rdChemReactions, rdCoordGen, rdDepictor
 
 
 
-db = st.connection("gsheets", type=GSheetsConnection)
 
-#rxn_df = pd.read_csv("input_file.csv", header=0)
-
-rxn_df = db.read(worksheet = "Raw_data", usecols=["Reactant", "Product", "AI"], nrows = 1782)
-responses_df = db.read(worksheet = "Responses", usecols=["time", "background", "experience", "age_experience",
-                                                         "smiles_sm", "smiles_selected", "correct",
-                                                         "ai_prediction", "correct_product", "selected_product"])
 def possible_prods(starting_material):
     """
     Input: RDKit Mol-object of starting material
@@ -184,6 +177,13 @@ def draw_results (df):
 
     return img
 
+@st.cache_data
+def read_data():
+    rxn_df = db.read(worksheet="Raw_data", usecols=["Reactant", "Product", "AI"], nrows=1782)
+
+    return rxn_df
+
+
 n_samples = 5
 time = []
 random_baseline = 1
@@ -200,6 +200,16 @@ st.write("Test your knowledge of aromatic substitutions by selecting the correct
          "You will be asked to select the correct product for 5 reactions. "
          "\n \n Your submissions will be recorded for analysis.")
 
+
+with st.expander("How to use this page"):
+    st.markdown("Using your chemical expertiese we want to see how challenging it is to predict aromatic substitution reactions.")
+    st.markdown("- For each molecule (right), you will be presented with its mono-chlorination products "
+                "(below).")
+    st.markdown("- From the drop-down menu in the end, select which is the major product")
+    st.markdown("- You will see 5 reactions, then the answers from literature and AI-prediction")
+    st.markdown("- You can play again by clicking the 'reset' button")
+    st.image("Schema-Chlorination-Web-Quiz.png")
+    
 col1, col2 = st.columns([0.5, 0.5])
 with col1:
     background = st.selectbox("What is your background?", ["Chemist", "Chemical Engineer", "Other"])
@@ -208,6 +218,21 @@ with col1:
                                                                                    "Industry", "Other"])
     age_experience = st.number_input("How many years of experience do you have with organic chemistry?", min_value=0,
                                      max_value=100, value=1, step=1)
+
+if st.checkbox("I have added my background information."):
+    try:
+        db = st.connection("gsheets", type=GSheetsConnection)
+
+        #rxn_df = pd.read_csv("input_file.csv", header=0)
+        rxn_df = read_data()
+        responses_df = db.read(worksheet = "Responses", usecols=["time", "background", "experience", "age_experience",
+                                                                 "smiles_sm", "smiles_selected", "correct",
+                                                                 "ai_prediction", "correct_product", "selected_product"])
+    except:
+        st.error(f"Couldn't load the data. \n\n Please, contact: hmm59@cam.ac.uk")
+else:
+    st.stop()
+
 # Initialize session state variables
 if 'current_iteration' not in st.session_state:
     st.session_state['current_iteration'] = 0
