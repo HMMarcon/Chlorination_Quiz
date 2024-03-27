@@ -6,3 +6,4 @@ input_prods.csv
 *.toml
 fixing_tautomers.ipynb
 input_file_copy.csv
+.DS_Store
