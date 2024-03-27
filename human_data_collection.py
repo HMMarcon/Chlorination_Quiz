@@ -209,8 +209,9 @@ with st.expander("How to use this page"):
 col1, col2 = st.columns([0.5, 0.5])
 with col1:
     background = st.selectbox("What is your background?", ["Chemist", "Chemical Engineer", "Other"])
-    experience = st.selectbox("What is your experience with organic chemistry?", ["Undegrad/Masters", "PhD",
-                                                                                   "Academic (Post-doc, Professor)",
+    experience = st.selectbox("What is your experience with organic chemistry?", ["Undergraduate", "Masters", "PhD",
+                                                                                  "Post-doc",
+                                                                                   "Academic (Professor)",
                                                                                    "Industry", "Other"])
     age_experience = st.number_input("How many years of experience do you have with organic chemistry?", min_value=0,
                                      max_value=100, value=1, step=1)
