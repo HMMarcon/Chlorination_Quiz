@@ -4,3 +4,5 @@ human_outputs.csv
 input_file.csv
 input_prods.csv
 *.toml
+fixing_tautomers.ipynb
+input_file_copy.csv
