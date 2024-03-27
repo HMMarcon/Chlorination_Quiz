@@ -14,9 +14,6 @@ from itertools import chain
 
 from rdkit.Chem import rdChemReactions, rdCoordGen, rdDepictor
 
-
-
-
 def possible_prods(starting_material):
     """
     Input: RDKit Mol-object of starting material
@@ -186,7 +183,6 @@ def read_data():
 
 n_samples = 5
 time = []
-random_baseline = 1
 background_list = []
 selections_list = []
 experience_list = []
@@ -269,9 +265,6 @@ if st.session_state['current_iteration'] < n_samples:
 
         grid_image, options, products_smiles = nicer_display(row.Reactant)
         st.image(grid_image)
-        random_baseline += 1/len(options)
-
-        #options = [f'Product {j + 1}' for j in range(len(products_smiles))]
 
         selected_prod = st.selectbox(f"Select product for reaction {st.session_state['current_iteration'] + 1}:",
                                      options)
@@ -335,10 +328,10 @@ with col2:
 
             performance = round(sum(correct_list) / len(correct_list) * 100, 0)
             ai_performance = round(sum(ai_correct_list) / len(ai_correct_list) * 100, 0)
-            random = round(random_baseline * 100/ len(correct_list), 0)
+            random = 24
             st.markdown(f"All reactions processed. You got **:green[{round(performance)}% correct]**  \n\n"
                         f"AI performance = **:orange[{round(ai_performance)}%]**  \n\n"
-                        f"Random-pick = **:red[{round(random)}%]**  \n\n")
+                        f"Random-pick = **:red[{round(random)}%]**  for full test-set\n\n")
 
             if performance > ai_performance and performance > random:
                 st.markdown(f"Well done! AI won't be replacing you soon.")
