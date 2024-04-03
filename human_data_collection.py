@@ -110,15 +110,15 @@ def nicer_display(smiles:str):
     - smiles: SMILES for the molecule.
     """
     # create mol from supplied SMILES
-    mol = Chem.MolFromSmiles(smiles)
-    rdDepictor.Compute2DCoords(mol)
+    reactant = Chem.MolFromSmiles(smiles)
+    rdDepictor.Compute2DCoords(reactant)
 
     # instantiate RDKit chemical reaction
     chlorinate_smarts = '[cH1:1]>>[cH0:1]-Cl'
     chlorinate = rdChemReactions.ReactionFromSmarts(chlorinate_smarts)
 
     # generate all possible products, return as list
-    products_rdkit = chlorinate.RunReactants([mol])
+    products_rdkit = chlorinate.RunReactants([reactant])
     products = list(chain.from_iterable(products_rdkit))
     #for mol in products:
     #    Chem.SanitizeMol(mol)
@@ -131,13 +131,13 @@ def nicer_display(smiles:str):
 
     # align products with the original
     #for p in products:
-    temp_2 = [rdDepictor.GenerateDepictionMatching2DStructure(p,mol) for p in products]
+    temp_2 = [rdDepictor.GenerateDepictionMatching2DStructure(p,reactant) for p in products]
     #[rdDepictor.GenerateDepictionMatching2DStructure(p,mol) for p in products]
     drawer_opts = get_drawer_options()
 
     legends = [f'Product {i}' for i, p in enumerate(products, start=1)]
 
-    highlight_atoms = [get_new_atom(mol, product) for product in products]
+    highlight_atoms = [get_new_atom(reactant, product) for product in products]
 
     img = Draw.MolsToGridImage(products, legends=legends, highlightAtomLists=highlight_atoms, drawOptions=drawer_opts,
                                useSVG = False, returnPNG = False, molsPerRow=3, subImgSize=(500, 500))
