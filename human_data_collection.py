@@ -10,6 +10,10 @@ from rdkit import DataStructs
 from rdkit.Chem import AllChem
 from rdkit.Chem.Draw import rdMolDraw2D
 
+from rdkit.Chem import MolStandardize
+from rdkit.Chem.MolStandardize import rdMolStandardize
+
+
 from itertools import chain
 
 from rdkit.Chem import rdChemReactions, rdCoordGen, rdDepictor
@@ -145,29 +149,24 @@ def draw_results (df):
     legends = []
     highlight_atoms = []
     # Specify only the columns with SMILES strings
-    smiles_columns = ['selected_product', 'ai_prediction', 'correct_product']
+    smiles_columns = ['smiles_sm', 'selected_product', 'ai_prediction', 'correct_product']
     df_raw = pd.DataFrame(df)
+    prod_smiles_columns = ['selected_product', 'ai_prediction', 'correct_product']
     # Convert SMILES to RDKit Molecules in the specified columns
     for col in smiles_columns:
         df_raw[col] = df_raw[col].apply(lambda x: Chem.MolFromSmiles(x) if x else None)
-        #df_raw[col] = df_raw[col].apply(lambda x: Chem.SanitizeMol(x) if x else None)
-
 
     for i, row in df_raw.iterrows():
-        for col in smiles_columns:
+        for col in prod_smiles_columns:
+            row[col] = rdMolStandardize.TautomerEnumerator().Canonicalize(row[col])
             mols.append(row[col])
+            highlight_atoms.append(get_new_atom(row['smiles_sm'], row[col]))
 
-            highlight_atoms.append(get_new_atom(Chem.MolFromSmiles(row['smiles_sm']), row[col]))
         legends.append([f'Your Pick {i+1}',f'AI Prediction {i+1}', f'Correct Answer {i+1}'])
     legends = list(chain.from_iterable(legends))
 
-
-
-    temp1 = [Chem.SanitizeMol(mol) for mol in mols]
-
     drawer_opts = get_drawer_options()
     # Draw grid image
-
     img = Draw.MolsToGridImage(mols, molsPerRow=3, subImgSize=(500, 500), drawOptions=drawer_opts,
                                highlightAtomLists=highlight_atoms, legends = legends,
                                useSVG= False, returnPNG = False)
