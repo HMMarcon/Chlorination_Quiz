@@ -125,14 +125,24 @@ def nicer_display(smiles:str):
     products_inchi = [Chem.MolToInchi(mol) for mol in products]
     products_inchi = list(set(products_inchi))
     products = [Chem.MolFromInchi(mol) for mol in products_inchi]
+    products = [rdMolStandardize.TautomerEnumerator().Canonicalize(mol) for mol in products]
+    #st.stop()
+    for product in products:
+        rdDepictor.Compute2DCoords(product)
+
     temp_1 = [Chem.SanitizeMol(mol) for mol in products]
 
     products_smiles = [Chem.MolToSmiles(mol) for mol in products]
 
     # align products with the original
-    #for p in products:
-    temp_2 = [rdDepictor.GenerateDepictionMatching2DStructure(p,reactant) for p in products]
-    #[rdDepictor.GenerateDepictionMatching2DStructure(p,mol) for p in products]
+    for p in products:
+        try:
+            rdDepictor.Compute2DCoords(p)
+            rdDepictor.GenerateDepictionMatching2DStructure(p,reactant)
+        except Exception as e:
+            st.error(f"Error with molecule: {Chem.MolToSmiles(p)} \n\n"
+                     f"Please, contact hmm59@cam.ac.uk")
+    #[rdDepictor.GenerateDepictionMatching2DStructure(p,reactant) for p in products]
     drawer_opts = get_drawer_options()
 
     legends = [f'Product {i}' for i, p in enumerate(products, start=1)]
