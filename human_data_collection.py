@@ -119,9 +119,12 @@ def nicer_display(smiles:str):
 
     # generate all possible products, return as list
     products_rdkit = chlorinate.RunReactants([mol])
-    products = list(set(list(chain.from_iterable(products_rdkit))))
+    products = list(chain.from_iterable(products_rdkit))
     #for mol in products:
     #    Chem.SanitizeMol(mol)
+    products_inchi = [Chem.MolToInChi(mol) for mol in products]
+    products_inchi = list(set(products_inchi))
+    products = [Chem.MolFromInChi(mol) for mol in products_inchi]
     temp_1 = [Chem.SanitizeMol(mol) for mol in products]
 
     products_smiles = [Chem.MolToSmiles(mol) for mol in products]
