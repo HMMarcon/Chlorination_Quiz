@@ -120,22 +120,30 @@ def nicer_display(smiles:str):
     # generate all possible products, return as list
     products_rdkit = chlorinate.RunReactants([reactant])
     products = list(chain.from_iterable(products_rdkit))
-    #for mol in products:
-    #    Chem.SanitizeMol(mol)
-    products_inchi = [Chem.MolToInchi(mol) for mol in products]
-    products_inchi = list(set(products_inchi))
-    products = [Chem.MolFromInchi(mol) for mol in products_inchi]
-    products = [rdMolStandardize.TautomerEnumerator().Canonicalize(mol) for mol in products]
-    #st.stop()
+    products_unique = []
+    products_unique_inchis = []
     for product in products:
-        rdDepictor.Compute2DCoords(product)
+        if Chem.MolToInchi(product) not in products_unique_inchis:
+            products_unique.append(product)
+            products_unique_inchis.append(Chem.MolToInchi(product))
 
-    temp_1 = [Chem.SanitizeMol(mol) for mol in products]
+    for mol in products_unique:
+        Chem.SanitizeMol(mol)
+        rdDepictor.Compute2DCoords(mol)
 
-    products_smiles = [Chem.MolToSmiles(mol) for mol in products]
+    #products_inchi = [Chem.MolToInchi(mol) for mol in products]
+    #products_inchi = list(set(products_inchi))
+    #products = [Chem.MolFromInchi(mol) for mol in products_inchi]
+    #products = [rdMolStandardize.TautomerEnumerator().Canonicalize(mol) for mol in products]
+    #st.stop()
+
+
+    #temp_1 = [Chem.SanitizeMol(mol) for mol in products]
+
+    products_smiles = [Chem.MolToSmiles(mol) for mol in products_unique]
 
     # align products with the original
-    for p in products:
+    for p in products_unique:
         try:
             rdDepictor.Compute2DCoords(p)
             rdDepictor.GenerateDepictionMatching2DStructure(p,reactant)
@@ -145,11 +153,11 @@ def nicer_display(smiles:str):
     #[rdDepictor.GenerateDepictionMatching2DStructure(p,reactant) for p in products]
     drawer_opts = get_drawer_options()
 
-    legends = [f'Product {i}' for i, p in enumerate(products, start=1)]
+    legends = [f'Product {i}' for i, p in enumerate(products_unique, start=1)]
 
-    highlight_atoms = [get_new_atom(reactant, product) for product in products]
+    highlight_atoms = [get_new_atom(reactant, product) for product in products_unique]
 
-    img = Draw.MolsToGridImage(products, legends=legends, highlightAtomLists=highlight_atoms, drawOptions=drawer_opts,
+    img = Draw.MolsToGridImage(products_unique, legends=legends, highlightAtomLists=highlight_atoms, drawOptions=drawer_opts,
                                useSVG = False, returnPNG = False, molsPerRow=3, subImgSize=(500, 500))
     return img, legends, products_smiles
 
@@ -235,7 +243,7 @@ if st.checkbox("I have added my background information."):
         #rxn_df = pd.read_csv("input_file.csv", header=0)
         rxn_df = read_data()
         responses_df = db.read(worksheet = "Responses", usecols=["time", "background", "experience", "age_experience",
-                                                                 "smiles_sm", "smiles_selected", "correct",
+                                                                 "smiles_sm", "correct",
                                                                  "ai_prediction", "correct_product", "selected_product"])
     except:
         st.error(f"Couldn't load the data. \n\n Please, contact: hmm59@cam.ac.uk")
@@ -257,6 +265,10 @@ if 'age_experience' not in st.session_state:
 
 if 'ai_prediction' not in st.session_state:
     st.session_state['ai_prediction'] = []
+
+if 'data_recorded' not in st.session_state:
+    st.session_state['data_recorded'] = False
+
 
 random_examples = st.session_state['random_examples']
 correct_list = random_examples["Product"].tolist()
@@ -307,7 +319,7 @@ if st.session_state['current_iteration'] < n_samples:
             st.rerun()
 
 # Check if all iterations are done
-with col2:
+with (col2):
 
     if st.session_state['current_iteration'] >= len(random_examples):
 
@@ -324,7 +336,7 @@ with col2:
         # Process the collected data here
 
         # Save the results
-        if len(selections_list) == len(random_examples) and len(time) == len(random_examples) and len(correct_list) == len(random_examples) and len(background_list) == len(random_examples):
+        if len(selections_list) == len(random_examples) and len(time) == len(random_examples) and len(correct_list) == len(random_examples) and len(background_list) == len(random_examples) :
             # Combine new data with sampled rows
             new_data = pd.DataFrame()
             new_data['time'] = time
@@ -357,6 +369,7 @@ with col2:
 
 
             #existing_data = pd.read_csv("human_outputs.csv")
+
             existing_data = responses_df
 
             # Append the new data to existing data
@@ -364,19 +377,18 @@ with col2:
             #st.write(updated_data)
             # Save the updated data
             # For local save
-            responses_df = db.update(worksheet = "Responses", data=updated_data)
-            st.cache_data.clear()
+            if not st.session_state['data_recorded']:
+                responses_df = db.update(worksheet = "Responses", data=updated_data)
+                st.session_state['data_recorded'] = True
+                st.cache_data.clear()
             #updated_data.to_csv("human_outputs.csv", index=False)
             st.markdown(" ")
             st.markdown(" ")
             st.markdown ("Click restart to do it again!")
             finished = True
-            # If using Google Sheets, replace the above line with Google Sheets API call to update the sheet
-            # db.update(data=updated_data, worksheet="Sheet2")
+
         else:
             st.error("Data mismatch error: Something went wrong. Please restart and try again.")
-
-
 
         if st.button("Restart"):
             st.session_state['current_iteration'] = 0
@@ -387,7 +399,7 @@ with col2:
             st.session_state['time'] = []
             st.session_state['ai_prediction'] = []
             st.session_state['random_examples'] = rxn_df.sample(n=n_samples)
-
+            st.session_state['data_recorded'] = False  # Reset the flag
             st.rerun()
 if finished:
     st.image(draw_results(new_data))
