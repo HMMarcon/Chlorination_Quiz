@@ -228,23 +228,31 @@ with st.expander("How to use this page"):
     
 col1, col2 = st.columns([0.5, 0.5])
 with col1:
-    background = st.selectbox("What is your background?", ["Chemist", "Chemical Engineer", "Other"])
+    background = st.selectbox("What is your background?", ["Chemist", "Chemical Engineer", "AI", "Other"],
+                              index = None)
     experience = st.selectbox("What is your experience with organic chemistry?", ["Undergraduate", "Masters", "PhD",
                                                                                   "Post-doc",
                                                                                    "Academic (Professor)",
-                                                                                   "Industry", "Other"])
+                                                                                   "Industry", "Other"],
+                              index = None)
     age_experience = st.number_input("How many years of experience do you have with organic chemistry?", min_value=0,
-                                     max_value=100, value=1, step=1)
+                                     max_value=100, value=None, step=1)
 
 if st.checkbox("I have added my background information."):
+    if background is None or experience is None or age_experience is None:
+        st.error("Please, include your background information to continue.")
+        st.stop()
+    else:
+        pass
+
     try:
         db = st.connection("gsheets", type=GSheetsConnection)
 
         #rxn_df = pd.read_csv("input_file.csv", header=0)
         rxn_df = read_data()
         responses_df = db.read(worksheet = "Responses", usecols=["time", "background", "experience", "age_experience",
-                                                                 "smiles_sm", "correct",
-                                                                 "ai_prediction", "correct_product", "selected_product"])
+                                                                 "smiles_sm", "correct", "ai_prediction",
+                                                                 "correct_product", "selected_product"])
     except:
         st.error(f"Couldn't load the data. \n\n Please, contact: hmm59@cam.ac.uk")
 else:
