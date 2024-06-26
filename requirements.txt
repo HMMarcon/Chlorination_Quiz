@@ -1,7 +1,7 @@
 rdkit-pypi == 2022.9.5
 pandas == 1.4.2
 ipywidgets == 7.6.3
-tqdm == 4.64.0
+tqdm == 4.66.3
 streamlit == 1.30.0
 st-gsheets-connection
 git+https://github.com/streamlit/gsheets-connection
